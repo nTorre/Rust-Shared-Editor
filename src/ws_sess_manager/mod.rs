@@ -1,5 +1,5 @@
 use std::collections::HashSet;
-use actix::{Actor, Addr, Context, Handler, Message};
+use actix::{Actor, Addr, Context, Handler};
 use crate::ws_actor::{BroadcastMessage, Connect, DefaultMessage, Disconnect, WebSocket};
 
 /// # Web Socket Session Manager

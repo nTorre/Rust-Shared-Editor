@@ -3,7 +3,7 @@ mod ws_sess_manager;
 mod ws_actor;
 
 use actix::prelude::*;
-use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Error, Responder};
+use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Error};
 use actix_web_actors::ws;
 use crate::errors::ConnectionError;
 use crate::ws_actor::WebSocket;
@@ -27,17 +27,18 @@ async fn ws_index( req: HttpRequest, stream: web::Payload, srv: web::Data<Addr<W
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let manager = WsSessionManager::new().start();
+    let address = "127.0.0.1:8080";
 
     let server = HttpServer::new(move || {
         App::new()
             .route("/ws/", web::get().to(ws_index))
             .service(actix_files::Files::new("/", "public").index_file("index.html"))
-            .data(manager.clone()) // Condividi l'indirizzo del gestore tra tutte le route
-    }).workers(1).bind("127.0.0.1:8080");
+            .app_data(manager.clone())
+    }).workers(1).bind(address);
 
     match server {
         Ok(server) => {
-            println!("Server listening on: 127.0.0.1:8080");
+            println!("Server listening on: {}", address);
             server.run().await
         }
         Err(err) => {
