@@ -4,15 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Collaborative Document Editor</title>
-    <!-- <style>
-        #editor {
-            width: 500px;
-            height: 200px;
-            border: 1px solid black;
-            padding: 8px;
-            font-family: Arial, sans-serif;
-        }
-    </style> -->
 
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
@@ -73,56 +64,6 @@
 
 </script>
 
-
-<!-- <div contenteditable="true" id="editor"></div>
-<button onclick="format('bold')">Bold</button>
-<button onclick="format('italic')">Italic</button>
-<button onclick="format('underline')">Underline</button>
-<script>
-    var ws = new WebSocket("ws://127.0.0.1:8080/ws/");
-
-    ws.onopen = function (event) {
-        console.log("Connection opened");
-    };
-
-    ws.onmessage = function (event) {
-        console.log("Message from server ", event.data);
-        document.getElementById('editor').innerHTML = event.data;
-    };
-
-    ws.onclose = function (event) {
-        console.log("Connection closed");
-    };
-
-    function format(styleType) {
-        // Send formatting command to server
-        let selection = window.getSelection();
-        if (!selection.rangeCount) return;
-
-        let range = selection.getRangeAt(0);
-        let start = range.startOffset;
-        let end = range.endOffset;
-
-        ws.send(JSON.stringify({
-            index: start,
-            length: end - start,
-            operation: styleType
-        }));
-    }
-
-
-    editor.addEventListener('input', function () {
-        ws.send(editor.innerHTML);
-        console.log('Nuovo contenuto:', editor.innerHTML);
-    });
-    // Override the paste event to maintain plain text format
-    document.getElementById('editor').addEventListener('paste', function (e) {
-        e.preventDefault();
-        var text = (e.originalEvent || e).clipboardData.getData('text/plain');
-        document.execCommand('insertText', false, text);
-    });
-
-</script> -->
 </body>
 
 </html>
