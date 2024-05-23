@@ -12,57 +12,86 @@
 
 <body>
 
-<div id="editor">
-    <p>Hello World!</p>
-    <p>Some initial <strong>bold</strong> text</p>
-    <p><br /></p>
-</div>
+    <div id="editor">
+    </div>
 
-<script>
+    <script>
 
-    var ws = new WebSocket("ws://127.0.0.1:8080/ws/");
-
-    ws.onopen = function (event) {
-        console.log("Connection opened");
-    };
-
-    ws.onmessage = function (event) {
-        console.log("Message from server ", event.data);
-        document.getElementById('editor').innerHTML = event.data;
-    };
-
-    ws.onclose = function (event) {
-        console.log("Connection closed");
-    };
-
-    var toolbarOptions = [
-        ['bold', 'italic', 'underline']  // Aggiungi solo i pulsanti che desideri
-    ];
-
-    var quill = new Quill('#editor', {
-        modules: {
-            toolbar: toolbarOptions  // Usa la configurazione personalizzata della toolbar
-        },
-        theme: 'snow'  // Usa il tema "snow" che include una UI predefinita
-    });
+        let last_update = 0;
+        let last_delta = {}
 
 
-    quill.on('text-change', (delta, oldDelta, source) => {
+        var ws = new WebSocket("ws://127.0.0.1:8080/ws/");
 
-        if (source == 'user') {
-            const delta = quill.getContents();
-            console.log(delta);
-            ws.send(JSON.stringify(delta));
+        ws.onopen = function (event) {
+            console.log("Connection opened");
+        };
+
+        ws.onmessage = function (event) {
+            console.log("Message from server ", event.data);
+            document.getElementById('editor').innerHTML = event.data;
+        };
+
+        ws.onclose = function (event) {
+            console.log("Connection closed");
+        };
+
+        var toolbarOptions = [
+            ['bold', 'italic', 'underline']
+        ];
+
+        var quill = new Quill('#editor', {
+            modules: {
+                toolbar: toolbarOptions
+            },
+            theme: 'snow'
+        });
+
+
+        quill.on('text-change', (delta, oldDelta, source) => {
+            last_update = Date.now();
+            last_delta = delta;
+
+            let obj = {
+                time: last_update,
+                delta: delta
+            };
+
+            if (source == 'user') {
+                console.log(JSON.stringify(obj));
+                ws.send(JSON.stringify(obj));
+            }
+        });
+
+
+        ws.onmessage = function (event) {
+            console.log("Message from server ", event.data);
+            let obj = JSON.parse(event.data);
+
+            let date = obj.time;
+            let delta = obj.delta;
+
+            console.log("Last local update: ", last_update)
+            console.log("Last remote update: ", date)
+
+            if (last_update < date) {
+                console.log("PROBLEMAAA");
+            }
+
+            quill.updateContents(delta);
         }
-    });
 
-    ws.onmessage = function (event) {
-        console.log("Message from server ", event.data);
-        let value = JSON.parse(event.data);
-        quill.setContents(value);
-    };
 
-</script>
+        // // testing
+        // function printHello() {
+        //     setInterval(() => {
+        //         quill.insertText(0, 'Hello', 'bold', true);
+        //     }, 1000); // 1000 millisecondi equivalgono a 1 secondo
+        // }
+
+        // printHello();
+
+    </script>
 
 </body>
 

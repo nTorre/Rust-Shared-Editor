@@ -39,8 +39,8 @@ impl Handler<Connect> for WsSessionManager {
         let addr = msg.addr;
         self.sessions.insert(addr.clone());
 
-        let welcome_text = self.last_text.to_string();
-        addr.do_send(DefaultMessage { text: welcome_text });
+        // let welcome_text = self.last_text.to_string();
+        // addr.do_send(DefaultMessage { text: welcome_text });
     }
 }
 

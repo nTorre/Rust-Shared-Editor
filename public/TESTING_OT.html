@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Collaborative Document Editor</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+
+</head>
+
+<body>
+
+    <div id="editor">
+    </div>
+
+    <script>
+
+        let last_local_update = 0;
+        let last_local_delta = {}
+
+        let last_remote_update = 0;
+        let last_remote_delta = {};
+
+
+        var ws = new WebSocket("ws://127.0.0.1:8080/ws/");
+
+        ws.onopen = function (event) {
+            console.log("Connection opened");
+        };
+
+        ws.onmessage = function (event) {
+            console.log("Message from server ", event.data);
+            document.getElementById('editor').innerHTML = event.data;
+        };
+
+        ws.onclose = function (event) {
+            console.log("Connection closed");
+        };
+
+        var toolbarOptions = [
+            ['bold', 'italic', 'underline']
+        ];
+
+        var quill = new Quill('#editor', {
+            modules: {
+                toolbar: toolbarOptions
+            },
+            theme: 'snow'
+        });
+
+
+        quill.on('text-change', (delta, oldDelta, source) => {
+            last_local_update = Date.now();
+            last_local_delta = delta;
+
+            let obj = {
+                time: last_local_update,
+                delta: delta
+            };
+
+
+            if (source == 'user') {
+                console.log(obj);
+                setTimeout(() => {
+                    ws.send(JSON.stringify(obj));
+                }, 0);
+            } else if (source == 'api' && JSON.stringify(obj).includes("Hello")) {
+                console.log(obj);
+                setTimeout(() => {
+                    ws.send(JSON.stringify(obj));
+                }, 0);
+            }
+        });
+
+
+        ws.onmessage = function (event) {
+            let obj = JSON.parse(event.data);
+
+            let last_remote_update = obj.time;
+            let last_remote_delta = obj.delta;
+
+            console.log("Last local update: ", last_local_update)
+            console.log("Last remote update: ", last_remote_update)
+
+            if (last_remote_delta.ops[0].retain == undefined){
+                last_remote_delta.ops[0].retain = 0;
+            }
+            console.log(last_remote_delta.ops[0].retain);
+        
+            if (last_local_update < last_remote_update) {
+                console.log(last_remote_delta)
+
+                if(Object.keys(last_local_delta.ops[0]).includes("insert")){
+
+                    if (isNaN(last_local_delta.ops[0].retain)){
+                        last_local_delta.ops[0].retain = 0;
+                    }
+
+                    if (isNaN(last_remote_delta.ops[0].retain)){
+                        last_remote_delta.ops[0].retain = 0;
+                    }
+
+                    last_remote_delta.ops[0].retain += 1;
+                    if (Object.keys(last_remote_delta.ops[0]).includes("insert")){
+                        console.log("Vediamolo")
+                        quill.insertText(last_remote_delta.ops[0].retain, last_remote_delta.ops[0].insert);
+                    }
+                }
+            } else {
+                console.log(last_remote_delta);
+                quill.updateContents(last_remote_delta);
+            }
+        }
+
+    </script>
+
+</body>
+
+</html>

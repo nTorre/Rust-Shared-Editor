@@ -27,13 +27,13 @@ async fn ws_index( req: HttpRequest, stream: web::Payload, srv: web::Data<Addr<W
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let manager = WsSessionManager::new().start();
-    let address = "127.0.0.1:8080";
+    let address = "0.0.0.0:8080";
 
     let server = HttpServer::new(move || {
         App::new()
             .route("/ws/", web::get().to(ws_index))
             .service(actix_files::Files::new("/", "public").index_file("index.html"))
-            .app_data(manager.clone())
+            .data(manager.clone())
     }).workers(1).bind(address);
 
     match server {
